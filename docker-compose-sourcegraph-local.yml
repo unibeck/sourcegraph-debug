@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  sourcegraph-server:
+    container_name: sourcegraph-server
+    image: sourcegraph/server:3.24.1
+#    build:
+#      context: .
+    environment:
+#      - 'SRC_LOG_LEVEL=dbug'
+#      - 'DISABLE_OBSERVABILITY=true'
+#      - "GIT_TRACE_PACKET=1"
+#      - "GIT_TRACE=1"
+#      - "GIT_CURL_VERBOSE=1"
+#      - "GIT_CONFIG_PARAMETERS='http.postBuffer=2147483648'"
+#      - "GIT_HTTP_MAX_REQUEST_BUFFER=500M"
+    volumes:
+      - ~/.sourcegraph/config:/etc/sourcegraph
+      - ~/.sourcegraph/data:/var/opt/sourcegraph:delegated
+#      - ~/projects/abccd:/var/opt/sourcegraph/repos/abccd
+    ports:
+      - 7080:7080
+      - 3070:3070
+    networks:
+      - sourcegraph
+    restart: always
+
+  sourcegraph-src-cli:
+    container_name: sourcegraph-src-cli
+    image: sourcegraph/src-cli:3.24.3
+    entrypoint: /bin/sh
+    command: "-c 'git config --system http.postBuffer 2147483648 && src serve-git /data/repos'"
+#    environment:
+#      - "GIT_TRACE_PACKET=1"
+#      - "GIT_TRACE=1"
+#      - "GIT_CURL_VERBOSE=1"
+    volumes:
+      - ~/projects:/data/repos:ro
+    ports:
+      - 3434:3434
+    networks:
+      - sourcegraph
+    restart: always
+
+networks:
+  sourcegraph:
